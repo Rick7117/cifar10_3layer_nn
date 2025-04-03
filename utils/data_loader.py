@@ -1,49 +1,59 @@
 import numpy as np
-import pickle
 import os
 
-def load_cifar10_batch(file_path):
-    """加载单个CIFAR-10批次文件"""
-    with open(file_path, 'rb') as f:
-        batch = pickle.load(f, encoding='latin1')
-    
-    features = batch['data'].reshape((len(batch['data']), 3, 32, 32)).transpose(0, 2, 3, 1)
-    labels = batch['labels']
-    
-    return features, labels
+import pickle
 
-def load_cifar10(data_dir):
-    """加载完整的CIFAR-10数据集"""
-    train_data = []
-    train_labels = []
-    
-    # 加载训练数据
-    for i in range(1, 6):
-        file_path = os.path.join(data_dir, f'data_batch_{i}')
-        features, labels = load_cifar10_batch(file_path)
-        train_data.append(features)
-        train_labels.append(labels)
-    
-    # 合并训练数据
-    train_data = np.concatenate(train_data)
-    train_labels = np.concatenate(train_labels)
-    
-    # 加载测试数据
-    test_data, test_labels = load_cifar10_batch(os.path.join(data_dir, 'test_batch'))
-    
-    # 归一化像素值到[0,1]
-    train_data = train_data.astype('float32') / 255.0
-    test_data = test_data.astype('float32') / 255.0
-    
-    return (train_data, train_labels), (test_data, test_labels)
+from tqdm import tqdm
 
-def preprocess_data(data, labels, num_classes=10):
-    """数据预处理：展平图像并one-hot编码标签"""
-    # 展平图像 (N, 32, 32, 3) -> (N, 3072)
-    flattened_data = data.reshape(data.shape[0], -1)
+
+def load_cifar10(batch_names, save_dir=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')):
+    X_list = []
+    y_list = [] 
     
-    # One-hot编码标签
-    one_hot_labels = np.zeros((len(labels), num_classes))
-    one_hot_labels[np.arange(len(labels)), labels] = 1
+    for batch in batch_names:
+        with open(os.path.join(save_dir,  batch), 'rb') as f:
+            data_dict = pickle.load(f, encoding='bytes')
+        X_list.append(data_dict[b'data'])
+        y_list.append(data_dict[b'labels'])
     
-    return flattened_data, one_hot_labels
+    X = np.concatenate(X_list)
+    y = np.concatenate(y_list)
+    return X, y
+
+def preprocess_data(X, y, ratio=0.8):
+    # 归一化
+    X = X.astype('float32') / 255.0
+    
+    # 独热编码
+    y_onehot = np.eye(10)[y.flatten()]
+    
+    # 展平数据供全连接网络使用
+    X = X.reshape(X.shape[0], -1)
+    
+    # 划分训练验证集
+    indices = np.random.permutation(X.shape[0])
+    split = int(ratio * X.shape[0])
+    
+    # 打印数据集统计信息
+    total_samples = X.shape[0]
+    print(f'训练集：{split}样本（{split/total_samples*100:.2f}%） \
+        验证集：{total_samples-split}样本（{(total_samples-split)/total_samples*100:.2f}%）')
+    
+    return {
+        'train_X': X[indices[:split]],
+        'train_y': y_onehot[indices[:split]],
+        'val_X': X[indices[split:]],
+        'val_y': y_onehot[indices[split:]]
+    }
+
+def load_processed_data(batch_names, ratio=0.8):
+    """
+    加载并预处理CIFAR-10数据
+    Args:
+        batch_names: 要加载的数据批次列表
+        ratio: 训练集划分比例
+    Returns:
+        预处理后的数据字典，包含训练/验证集的X和y
+    """
+    X, y = load_cifar10(batch_names)
+    return preprocess_data(X, y, ratio)

@@ -1,26 +1,21 @@
-learning_rate:
-  - 0.0001
-  - 0.001
-  - 0.01
 hidden_size:
-  - 256
-  - 512
-  - 1024
-reg_lambda:
-  - 0.0001
-  - 0.001
-  - 0.01
-activation:
-  - 'relu'
-  - 'tanh'
-  - 'sigmoid'
-batch_size:
   - 64
   - 128
   - 256
-lr_decay_every:
-  - 5
-  - 10
-lr_decay_factor:
-  - 0.8
-  - 0.9
+  - 512
+lr:
+  - 0.01
+  - 0.001
+  - 0.0001
+reg_lambda:
+  - 0.01
+  - 0.001
+  - 0.0001
+batch_size:
+  - 32 
+  - 64
+  - 128
+activation_func:
+  - relu
+  - sigmoid
+  - tanh

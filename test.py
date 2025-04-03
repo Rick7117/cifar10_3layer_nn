@@ -1,36 +1,56 @@
-import numpy as np
-import pickle
-from models.neural_net import ThreeLayerNN
-from utils.metrics import accuracy
-from utils.visualization import visualize_weights
+import os
+from train import Trainer
 
-def test_model(test_data, test_labels, model_path):
-    """
-    测试模型性能
-    :param test_data: 测试数据
-    :param test_labels: 测试标签
-    :param model_path: 模型文件路径
-    :return: 测试准确率
-    """
-    # 加载模型
-    with open(model_path, 'rb') as f:
-        model_dict = pickle.load(f)
-    
-    # 初始化模型
-    input_size = test_data.shape[1]
-    model = ThreeLayerNN(input_size, model_dict['config']['hidden_size'], 10, model_dict['config']['activation'])
-    model.params = model_dict['params']
-    
-    # 前向传播
-    probs = model.forward(test_data)
-    
-    # 计算准确率
-    test_acc = accuracy(test_labels, probs)
-    print(f'Test Accuracy: {test_acc:.4f}')
-    
-    # 可视化权重
-    visualize_weights(model.params['W1'], 'First Layer Weights')
-    visualize_weights(model.params['W2'], 'Second Layer Weights')
-    visualize_weights(model.params['W3'], 'Output Layer Weights')
-    
-    return test_acc
+class Tester:
+    def __init__(self, model, test_data, model_path):
+        self.model = model
+        self.test_X, self.test_y = test_data
+        self.model_path = model_path
+        self.trainer = Trainer(
+            model=model,
+            train_data=(self.test_X, self.test_y), 
+            val_data=(self.test_X, self.test_y),
+            lr=0.001,
+            reg_lambda=0.001,
+            save_path=os.path.join(os.path.dirname(self.model_path), 'test_model.npz')
+        )
+
+    def test_report(self):
+        # 使用Trainer的评估方法
+        acc = self.trainer.evaluate(self.test_X, self.test_y)
+        print(f"Test Accuracy: {acc:.4f}")
+        return acc
+
+    def gradient_check(self, X_sample, epsilon=1e-7):
+        # 实现数值梯度检验
+        original_params = {k:v.copy() for k,v in self.model.params.items()}
+        grad_analytic = self.model.backward(X_sample, self.test_y, 0)
+        
+        for param_name in self.model.params:
+            param = self.model.params[param_name]
+            grad_num = np.zeros_like(param)
+            
+            for i in range(param.shape[0]):
+                for j in range(param.shape[1]):
+                    old_val = param[i,j]
+                    
+                    # 正向扰动
+                    param[i,j] = old_val + epsilon
+                    loss_plus = self.model.compute_loss(self.model.forward(X_sample), self.test_y)
+                    
+                    # 负向扰动
+                    param[i,j] = old_val - epsilon
+                    loss_minus = self.model.compute_loss(self.model.forward(X_sample), self.test_y)
+                    
+                    # 恢复原值
+                    param[i,j] = old_val
+                    
+                    # 计算数值梯度
+                    grad_num[i,j] = (loss_plus - loss_minus) / (2*epsilon)
+            
+            # 计算相对误差
+            diff = np.linalg.norm(grad_num - grad_analytic[param_name])
+            relative_error = diff / (np.linalg.norm(grad_num) + np.linalg.norm(grad_analytic[param_name]))
+            print(f'Gradient check for {param_name}: relative error {relative_error:.2e}')
+        
+        self.model.params = original_params
