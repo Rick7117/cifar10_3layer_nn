@@ -1,4 +1,6 @@
 import numpy as np
+import yaml
+import os
 
 class ThreeLayerNN:
     def __init__(self, input_size, hidden_size, output_size, activation='relu'):
@@ -20,6 +22,49 @@ class ThreeLayerNN:
         # self.sigmoid = lambda x: 1 / (1 + np.exp(-x))
         # self.tanh = lambda x: np.tanh(x)
         self.cache = {}
+        # 记录网络架构参数用于验证
+        self.architecture = {
+            'input_size': input_size,
+            'hidden_size': hidden_size,
+            'output_size': output_size
+        }
+
+    def load_params(self, file_path):
+
+        """
+        从npz文件加载模型参数
+        :param file_path: 参数文件路径
+        """
+        try:
+            # 加载NPZ参数文件
+            params = np.load(file_path)
+            
+            # 验证必须参数是否存在
+            required_keys = ['W1', 'b1', 'W2', 'b2', 'W3', 'b3']
+            for key in required_keys:
+                if key not in params:
+                    raise ValueError(f'缺失关键参数: {key}')
+
+            # 验证参数维度
+            if params['W1'].shape != (self.architecture['input_size'], self.architecture['hidden_size']):
+                raise ValueError('W1维度不匹配')
+            if params['b1'].shape != (self.architecture['hidden_size'],):
+                raise ValueError('b1维度不匹配')
+            if params['W2'].shape != (self.architecture['hidden_size'], self.architecture['hidden_size']):
+                raise ValueError('W2维度不匹配')
+            if params['b2'].shape != (self.architecture['hidden_size'],):
+                raise ValueError('b2维度不匹配')
+            if params['W3'].shape != (self.architecture['hidden_size'], self.architecture['output_size']):
+                raise ValueError('W3维度不匹配')
+            if params['b3'].shape != (self.architecture['output_size'],):
+                raise ValueError('b3维度不匹配')
+
+            # 更新模型参数
+            self.params = {key: params[key] for key in params.files}
+            
+        except Exception as e:
+            print(f'参数加载失败: {e}')
+            raise
 
     # 新增激活函数
     def sigmoid(self, x):

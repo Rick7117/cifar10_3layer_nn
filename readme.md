@@ -66,7 +66,7 @@ python main.py --mode train --config configs/best_params.yaml
 ## 测试模型
 
 ```bash
-python main.py --mode test --model_path experiments/best_model.pkl
+python main.py --mode test --model_path experiments/best_model.npz
 ```
 
 ## 超参数调优
