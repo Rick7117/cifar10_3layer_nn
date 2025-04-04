@@ -6,23 +6,35 @@
 
 ```
 cifar10_3layer_nn/
-├── models/                    # 模型相关代码
-│   ├── __init__.py
-│   ├── neural_net.py          # 三层神经网络实现
-│   └── layers.py              # 激活函数等组件
 ├── utils/                     # 工具函数
+│   ├── __init__.py            # 初始化
 │   ├── data_loader.py         # CIFAR-10数据加载与预处理
-│   ├── metrics.py             # 准确率等计算
 │   └── visualization.py       # 权重可视化
 ├── configs/                   # 超参数配置
 │   ├── search_space.yaml      # 参数搜索空间
+│   ├── base_params.yaml       # 基础参数配置
 │   └── best_params.yaml       # 最优参数配置
+├── figure/                    # 可视化结果
+│   ├── params_distribution.png# 参数分布
+│   └── training_curves.png    # 训练曲线
+├── data/                      # 数据集
+│   ├── batches.meta           # 数据集元信息
+│   ├── data_batch_1           # 训练数据
+│   ├── data_batch_2
+│   ├── ...
+│   ├── data_batch_5
+│   ├── test_batch             # 测试数据
+│   └── readme.html            # 数据集说明
+├── figures/                   # 可视化结果
+│   ├── params_distribution.png# 参数分布
+│   └── training_curves.png    # 训练曲线
 ├── experiments/               # 实验记录
-│   ├── best_model.pkl         # 最优模型权重
+│   └── best_model.pkl         # 最优模型权重
+├── model.py                   # 神经网络模型
 ├── main.py                    # 主程序入口
 ├── train.py                   # 训练流程
 ├── test.py                    # 测试流程
-├── param_search.py   # 参数搜索
+├── param_search.py            # 参数搜索
 └── requirements.txt           # 依赖库
 ```
 
@@ -51,16 +63,10 @@ CIFAR-10数据集需要手动下载，从[官方网站](https://www.cs.toronto.e
 python main.py --mode train
 ```
 
-### 使用自定义参数训练
-
-```bash
-python main.py --mode train --lr 0.01 --hidden_size 512 --batch_size 32 --epochs 50
-```
-
 ### 使用配置文件训练
 
 ```bash
-python main.py --mode train --config configs/best_params.yaml
+python main.py --mode train --config configs/best_params.yaml --save_model_path experiments/best_model.npz
 ```
 
 ## 测试模型
@@ -72,10 +78,10 @@ python main.py --mode test --model_path experiments/best_model.npz
 ## 超参数调优
 
 ```bash
-python parameter_tuning.py
+python main.py --mode param_search --search_space configs/search_space.yaml
 ```
 
-## 最优参数
+### 最优参数
 
 根据我们的实验，最优参数配置如下：
 
@@ -90,7 +96,7 @@ python parameter_tuning.py
 训练过程中的损失和准确率曲线会自动保存在`figures`目录下。您也可以使用以下命令可视化模型权重：
 
 ```bash
-python main.py --mode visualize --model_path experiments/best_model.pkl
+python main.py --mode visualize --model_path experiments/best_model.npz
 ```
 
 ## 性能
