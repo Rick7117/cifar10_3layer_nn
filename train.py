@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 class Trainer:
-    def __init__(self, model, train_data, val_data, lr, reg_lambda, save_path, lr_decay=0.95, epochs=50, batch_size=64):
+    def __init__(self, model, train_data, val_data, lr, reg_lambda, save_path=None, lr_decay=0.95, epochs=50, batch_size=64):
         self.model = model
         self.train_X, self.train_y = train_data
         self.val_X, self.val_y = val_data
@@ -11,13 +11,15 @@ class Trainer:
         self.epochs = epochs
         self.batch_size = batch_size
         self.lr_decay = lr_decay
-        self.save_path = os.path.join(os.path.dirname(save_path), os.path.basename(save_path) + '.npz')
-        os.makedirs(os.path.dirname(self.save_path), exist_ok=True)
+        
+        if save_path:
+            self.save_path = os.path.join(os.path.dirname(save_path), os.path.basename(save_path))
+            os.makedirs(os.path.dirname(self.save_path), exist_ok=True)
+        else:
+            self.save_path = None
         self.best_val_acc = 0
         
-        # 创建保存目录
-        if save_path:
-            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            
 
     def compute_loss(self, y_pred, y_true):
         m = y_true.shape[0]
@@ -78,7 +80,8 @@ class Trainer:
             # 保存最佳模型
             if val_acc > self.best_val_acc:
                 self.best_val_acc = val_acc
-                np.savez(self.save_path, **self.model.params)
+                if self.save_path:
+                    np.savez(self.save_path, **self.model.params)
             
             print(f"Epoch {epoch+1}/{self.epochs} - "
                   f"Train Loss: {train_loss:.4f} - "
