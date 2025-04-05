@@ -99,6 +99,8 @@ python main.py --mode param_search --search_space configs/search_space.yaml
 - 学习率: 0.01
 - 正则化系数: 0.0001
 
+最优的超参数保存在`configs/best_params.yaml`中。根据最优的超参数选择，我们训练得到最优的模型参数在`experiments/best_model.npz`文件中。
+
 ## 可视化
 
 训练过程中的损失和准确率曲线会自动保存在`figures`目录下。您也可以使用以下命令可视化模型权重：
