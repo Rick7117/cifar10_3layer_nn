@@ -2,4 +2,4 @@ activation_func: relu
 batch_size: 32
 hidden_size: 512
 lr: 0.01
-reg_lambda: 0.001
+reg_lambda: 0.0001

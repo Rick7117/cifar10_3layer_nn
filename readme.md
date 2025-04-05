@@ -9,6 +9,7 @@ cifar10_3layer_nn/
 ├── utils/                     # 工具函数
 │   ├── __init__.py            # 初始化
 │   ├── data_loader.py         # CIFAR-10数据加载与预处理
+│   ├── analyze_results.py     # 超参数搜索结果分析
 │   └── visualization.py       # 权重可视化
 ├── configs/                   # 超参数配置
 │   ├── search_space.yaml      # 参数搜索空间
@@ -27,14 +28,21 @@ cifar10_3layer_nn/
 │   └── readme.html            # 数据集说明
 ├── figures/                   # 可视化结果
 │   ├── params_distribution.png# 参数分布
-│   └── training_curves.png    # 训练曲线
+│   ├── training_curves.png    # 训练曲线
+│   ├── param_heatmap_layer1.png# 第一层权重和偏置热力图
+│   ├── param_heatmap_layer2.png# 第二层权重和偏置热力图
+│   ├── param_heatmap_layer3.png# 第三层权重和偏置热力图
+│   └── params_heatmap.png     # 所有权重和偏置热力图
 ├── experiments/               # 实验记录
-│   └── best_model.pkl         # 最优模型权重
+│   ├── results_table.tex      # 超参数实验结果表格tex
+│   ├── summary.csv            # 超参数实验结果表格csv
+│   └── best_model.npz         # 最优模型权重
 ├── model.py                   # 神经网络模型
 ├── main.py                    # 主程序入口
 ├── train.py                   # 训练流程
 ├── test.py                    # 测试流程
 ├── param_search.py            # 参数搜索
+├── README.md                  # 项目说明
 └── requirements.txt           # 依赖库
 ```
 
@@ -89,7 +97,7 @@ python main.py --mode param_search --search_space configs/search_space.yaml
 - 批量大小: 32
 - 隐藏层大小: 512
 - 学习率: 0.01
-- 正则化系数: 0.001
+- 正则化系数: 0.0001
 
 ## 可视化
 
@@ -101,7 +109,7 @@ python main.py --mode visualize --model_path experiments/best_model.npz
 
 ## 性能
 
-在CIFAR-10测试集上，我们的三层神经网络达到了约52.86%的准确率，这对于没有使用卷积层的简单网络来说是一个不错的结果。
+在CIFAR-10测试集上，我们的三层神经网络达到了约52.67%的准确率，这对于没有使用卷积层的简单网络来说是一个不错的结果。
 
 ## 贡献
 

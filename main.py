@@ -6,7 +6,8 @@ from model import ThreeLayerNN
 from train import Trainer
 from test import Tester
 from param_search import ParamSearcher
-from utils.visualization import plot_training_curves, plot_parameter_distribution
+from utils.visualization import plot_training_curves, plot_parameter_distribution, plot_parameter_heatmap
+from utils.analyze_results import summarize_results, export_to_latex
 import yaml
 
 def parse_args():
@@ -101,6 +102,9 @@ def param_search_mode(args):
     print(f'最佳参数已保存至：{best_params_path}')
     print(f'验证集准确率：{best_acc:.2%}')
 
+    # 汇总搜索结果
+    summarize_results('experiments')
+
 def visualize_mode(args):
     # 加载模型参数
     model = ThreeLayerNN(3072, 512, 10)
@@ -108,6 +112,23 @@ def visualize_mode(args):
     
     print('\n=== 参数可视化 ===')
     plot_parameter_distribution(model.params, 'figure')
+    plot_parameter_heatmap(model.params, 'figure')
+    df = summarize_results('experiments')
+    
+    # 导出为LaTeX表格
+    column_mapping = {
+        'learning_rate': '学习率',
+        'hidden_size': '隐藏层大小',
+        'reg_lambda': '正则化系数',
+        'batch_size': '批量大小',
+        'activation': '激活函数',
+        'best_val_acc': '最佳验证准确率',
+        'final_train_loss': '最终训练损失'
+    }
+    
+    latex_path = os.path.join('experiments', 'results_table.tex')
+    export_to_latex(df, latex_path, caption="CIFAR-10三层神经网络实验结果", 
+                   label="tab:cifar10_results", column_mapping=column_mapping)
 
 if __name__ == '__main__':
     args = parse_args()

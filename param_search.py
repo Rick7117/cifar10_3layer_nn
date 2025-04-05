@@ -8,12 +8,12 @@ import yaml
 
 class ParamSearcher:
     def __init__(self, train_data, val_data, base_save_dir=None):
-        # if base_save_dir is None:
-        #     base_save_dir = os.path.join('experiments')
+        if base_save_dir is None:
+            base_save_dir = os.path.join('experiments')
         self.train_data = train_data
         self.val_data = val_data
-        # self.base_save_dir = base_save_dir
-        # os.makedirs(base_save_dir, exist_ok=True)
+        self.base_save_dir = base_save_dir
+        os.makedirs(base_save_dir, exist_ok=True)
 
     def grid_search(self, param_grid):
         best_acc = 0
@@ -26,7 +26,7 @@ class ParamSearcher:
         
         for params in combinations:
             # 创建实验目录
-            # exp_name = f"lr{params['lr']}_h{params['hidden_size']}_reg{params['reg_lambda']}_batchSize{params['batch_size']}_activation{params['activation_func']}"
+            exp_name = f"lr{params['lr']}_h{params['hidden_size']}_reg{params['reg_lambda']}_batchSize{params['batch_size']}_activation{params['activation_func']}"
             print(f'\n=== 超参数探索 ===')
             print(f'学习率: {params["lr"]}')
             print(f'隐藏层维度: {params["hidden_size"]}')
@@ -34,7 +34,8 @@ class ParamSearcher:
             print(f'批次大小: {params["batch_size"]}')
             print(f'激活函数: {params["activation_func"]}')
 
-            # save_path = os.path.join(self.base_save_dir, exp_name, 'model.npz')
+            save_path = os.path.join(self.base_save_dir, exp_name, 'model.npz')
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
             
             # 初始化模型
             model = ThreeLayerNN(
@@ -64,13 +65,13 @@ class ParamSearcher:
                 best_params = params
                 
             # 保存训练结果，包括训练损失、验证准确率和超参数
-            # np.savez(
-            #     os.path.join(self.base_save_dir, exp_name, 'results.npz'),
-            #     train_loss=train_loss,
-            #     val_acc=val_acc,
-            #     params=params
-            # )
-
+            np.savez(
+                os.path.join(self.base_save_dir, exp_name, 'results.npz'),
+                train_loss=train_loss,
+                val_acc=val_acc,
+                params=params
+            )
+            
         # 保存最佳参数到configs目录
         self.save_best_params(best_params)
         
